@@ -11,6 +11,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         die("All fields are required.");
     }
 
+    // Validate email format
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        die("Invalid email format.");
+    }
+
+    // Password strength validation
+    if (strlen($password) < 8 || !preg_match('/[A-Z]/', $password) || !preg_match('/[a-z]/', $password) || !preg_match('/[0-9]/', $password)) {
+        die("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number.");
+    }
+
+    // Sanitize inputs
+    $username = htmlspecialchars($username, ENT_QUOTES, 'UTF-8');
+    $email = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
+
     // Create a database connection
     $database = new Database();
     $db = $database->dbConnection();
