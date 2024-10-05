@@ -1,17 +1,56 @@
 <?php
-require_once 'Database.php';
-$db = new Database();
-$conn = $db->dbConnection();
+require_once 'Database.php'; // Include the Database class
 
-$query = "INSERT INTO users (username, password, email) VALUES (:username, :password, :email)";
-$stmt = $conn->prepare($query);
-$stmt->bindParam(':username', $username);
-$stmt->bindParam(':password', $hashed_password);
-$stmt->bindParam(':email', $email);
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $username = trim($_POST['username']);
+    $email = trim($_POST['email']);
+    $password = trim($_POST['password']);
 
-if ($stmt->execute()) {
-    echo "User registered successfully!";
+    // Validate input
+    if (empty($username) || empty($email) || empty($password)) {
+        die("All fields are required.");
+    }
+
+    // Create a database connection
+    $database = new Database();
+    $db = $database->dbConnection();
+
+    // Prepare an SQL statement to prevent SQL injection
+    $query = "INSERT INTO users (username, email, password) VALUES (:username, :email, :password)";
+    $stmt = $db->prepare($query);
+
+    // Hash the password for security
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+    // Bind parameters
+    $stmt->bindParam(':username', $username);
+    $stmt->bindParam(':email', $email);
+    $stmt->bindParam(':password', $hashed_password);
+
+    // Execute the statement
+    if ($stmt->execute()) {
+        // Generate a verification code
+        $verification_code = bin2hex(random_bytes(16)); // Generate a random code
+
+        // Store the code in the database for later verification
+        $user_id = $db->lastInsertId(); // Get the last inserted user ID
+        $query = "UPDATE users SET verification_code = :verification_code WHERE id = :id";
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':verification_code', $verification_code);
+        $stmt->bindParam(':id', $user_id);
+        $stmt->execute();
+
+        // Send the verification email
+        $subject = "Verify Your Email";
+        $message = "Your verification code is: " . $verification_code;
+        mail($email, $subject, $message); // Basic email function
+
+        echo "Registration successful! A verification code has been sent to your email.";
+        echo '<a href="verify.php">Verify Email</a>'; // Link to verification page
+    } else {
+        echo "Error registering user.";
+    }
 } else {
-    echo "User registration failed: " . implode(", ", $stmt->errorInfo());
+    echo "Invalid request.";
 }
 ?>
