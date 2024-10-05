@@ -1,7 +1,13 @@
 <?php
 require_once 'Database.php'; // Include the Database class
 
-session_start(); // Start the session for tracking user login state
+session_start(); // Start the session for user tracking
+
+// Check if the user is already logged in
+if (isset($_SESSION['user_id'])) {
+    header("Location: dashboard.php"); // Redirect to dashboard or home page
+    exit();
+}
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST['email']);
@@ -35,6 +41,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
             echo "Login successful! Welcome, " . htmlspecialchars($user['username'], ENT_QUOTES, 'UTF-8') . ".";
+            // Redirect to a secure page (dashboard, etc.)
+            header("Location: dashboard.php");
+            exit();
         } else {
             // Password is incorrect
             echo "Invalid password. Please try again.";
