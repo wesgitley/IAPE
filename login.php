@@ -18,6 +18,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         die("Email and password are required.");
     }
 
+    // Validate email format
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        die("Invalid email format.");
+    }
+
     // Sanitize email input
     $email = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
 
