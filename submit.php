@@ -1,19 +1,17 @@
 <?php
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = trim($_POST['username']);
-    $email = trim($_POST['email']);
-    $password = trim($_POST['password']);
-    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+require_once 'Database.php';
+$db = new Database();
+$conn = $db->dbConnection();
 
-    
-    if (empty($username) || empty($email) || empty($password)) {
-        die("All fields are required.");
-    }
+$query = "INSERT INTO users (username, password, email) VALUES (:username, :password, :email)";
+$stmt = $conn->prepare($query);
+$stmt->bindParam(':username', $username);
+$stmt->bindParam(':password', $hashed_password);
+$stmt->bindParam(':email', $email);
 
-    
-    
-    echo "Registration successful!";
+if ($stmt->execute()) {
+    echo "User registered successfully!";
 } else {
-    echo "Invalid request.";
+    echo "User registration failed.";
 }
 ?>
