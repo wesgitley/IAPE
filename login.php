@@ -1,7 +1,7 @@
 <?php
 require_once 'Database.php'; // Include the Database class
 
-session_start(); // Start the session for user tracking
+session_start(); // Start the session for tracking user login state
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST['email']);
