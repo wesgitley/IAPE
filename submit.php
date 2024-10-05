@@ -12,6 +12,6 @@ $stmt->bindParam(':email', $email);
 if ($stmt->execute()) {
     echo "User registered successfully!";
 } else {
-    echo "User registration failed.";
+    echo "User registration failed: " . implode(", ", $stmt->errorInfo());
 }
 ?>
