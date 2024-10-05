@@ -1,7 +1,10 @@
 <?php
 require_once 'Database.php'; // Include the Database class
 
-session_start(); // Start the session for user tracking
+session_start(); // Start the session
+
+// Generate CSRF token for the form
+$_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
 // Check if the user is already logged in
 if (isset($_SESSION['user_id'])) {
@@ -12,6 +15,12 @@ if (isset($_SESSION['user_id'])) {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST['email']);
     $password = trim($_POST['password']);
+    $csrf_token = $_POST['csrf_token'];
+
+    // Validate CSRF token
+    if (!hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+        die("Invalid CSRF token.");
+    }
 
     // Validate input
     if (empty($email) || empty($password)) {
@@ -40,6 +49,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($stmt->rowCount() > 0) {
         $user = $stmt->fetch(PDO::FETCH_ASSOC); // Fetch user data
 
+        // Check if user is verified
+        if (!$user['is_verified']) {
+            die("Please verify your email before logging in.");
+        }
+
         // Verify the password
         if (password_verify($password, $user['password'])) {
             // Password is correct, set session variables
@@ -66,20 +80,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Login</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-    <div class="container">
-        <h2>User Login</h2>
-        <form action="login.php" method="POST">
-            <div class="form-group">
-                <input type="email" class="form-control" name="email" placeholder="Email" required>
-            </div>
-            <div class="form-group">
-                <input type="password" class="form-control" name="password" placeholder="Password" required>
-            </div>
-            <button type="submit" class="btn btn-primary btn-block">Login</button>
-        </form>
-    </div>
+    <form action="login.php" method="POST">
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+        <button type="submit">Login</button>
+    </form>
 </body>
 </html>
