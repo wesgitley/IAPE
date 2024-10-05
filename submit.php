@@ -17,11 +17,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Password strength validation
-    if (strlen($password) < 8 || !preg_match('/[A-Z]/', $password) || !preg_match('/[a-z]/', $password) || !preg_match('/[0-9]/', $password)) {
+    if (strlen($password) < 8 || 
+        !preg_match('/[A-Z]/', $password) || 
+        !preg_match('/[a-z]/', $password) || 
+        !preg_match('/[0-9]/', $password)) {
         die("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number.");
     }
 
-    // Sanitize inputs
+    // Sanitize inputs to prevent XSS and SQL Injection
     $username = htmlspecialchars($username, ENT_QUOTES, 'UTF-8');
     $email = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
 
